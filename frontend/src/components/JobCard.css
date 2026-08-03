@@ -1,0 +1,106 @@
+.job-card {
+  background: rgba(15, 19, 30, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 26px;
+  margin-bottom: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(126, 231, 217, 0.18);
+}
+
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.job-card-header h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.job-meta {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.job-explanation {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.job-flag {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--warning);
+  background: rgba(239, 181, 111, 0.12);
+  border: 1px solid rgba(239, 181, 111, 0.24);
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.job-flag--muted {
+  color: var(--text-muted);
+  background: transparent;
+  border-color: var(--border);
+}
+
+.skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.skill-tag {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.skill-tag--matched {
+  background: rgba(63, 207, 180, 0.14);
+  color: var(--accent);
+  border: 1px solid rgba(63, 207, 180, 0.4);
+}
+
+.skill-tag--missing {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  text-decoration: line-through;
+}
+
+.job-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.salary {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.view-link {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.view-link:hover {
+  text-decoration: underline;
+}

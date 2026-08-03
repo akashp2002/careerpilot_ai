@@ -1,0 +1,61 @@
+.eyebrow {
+  color: var(--accent);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 28px;
+  line-height: 1.7;
+  max-width: 40rem;
+}
+
+.error-banner {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(244, 112, 97, 0.12);
+  border: 1px solid rgba(244, 112, 97, 0.25);
+  border-radius: 10px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px 18px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 30px rgba(63, 207, 180, 0.18);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--accent-dim);
+}
+
+.submit-btn:disabled {
+  background: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.submit-btn--secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.submit-btn--secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}

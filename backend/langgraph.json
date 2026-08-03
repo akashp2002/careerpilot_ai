@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "job_discovery_agent": "./app/agents/studio_graph.py:graph"
+  },
+  "env": ".env",
+  "python_version": "3.11"
+}

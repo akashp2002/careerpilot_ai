@@ -1,0 +1,69 @@
+@import './shared.css';
+
+.review-page {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+.review-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.job-list {
+  margin-top: 28px;
+}
+
+.review-actions {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 30px;
+  margin-top: 24px;
+  box-shadow: var(--shadow);
+}
+
+.review-actions h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.refine-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.text-input {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(126, 231, 217, 0.12);
+}
+
+.action-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.action-row .submit-btn {
+  margin-top: 0;
+}

@@ -1,0 +1,28 @@
+.match-ring {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+}
+
+.match-ring-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.match-ring svg {
+  display: block;
+}
+
+.match-ring circle:first-child {
+  opacity: 0.3;
+}
+
+.match-ring circle:last-child {
+  filter: drop-shadow(0 0 8px rgba(126, 231, 217, 0.35));
+}
