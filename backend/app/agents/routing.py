@@ -1,6 +1,6 @@
 from app.agents.state import GraphState
 
-SOURCE_AFFECTING_FIELDS = {"role", "location"}
+SOURCE_AFFECTING_FIELDS = {"role", "locations"}
 
 
 def route_after_hitl(state: GraphState) -> str:

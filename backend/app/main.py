@@ -27,7 +27,6 @@ from pydantic import BaseModel
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 
-LANGGRAPH_DB_URL = os.getenv("DATABASE_URL").replace("+asyncpg", "")
 
 
 LANGGRAPH_DB_URL = os.getenv("DATABASE_URL").replace("+asyncpg", "")
@@ -131,7 +130,7 @@ async def start_job_search(request: JobSearchRequest, db: AsyncSession = Depends
 
     preferences = {
         "role": request.role,
-        "location": request.location,
+        "locations": request.locations,
         "salary_min": request.salary_min,
         "salary_max": request.salary_max,
         "remote_ok": request.remote_ok,

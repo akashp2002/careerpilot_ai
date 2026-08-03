@@ -74,7 +74,7 @@ export interface RankedJob {
 export interface JobSearchRequest {
   user_id: string;
   role: string;
-  location: string;
+  locations: string[];
   salary_min?: number | null;
   salary_max?: number | null;
   remote_ok?: boolean | null;

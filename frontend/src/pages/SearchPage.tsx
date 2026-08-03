@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { searchJobs } from "../api/jobsApi";
 import { useSession } from "../context/SessionContext";
 import type { JobSearchResponse } from "../api/types";
+import TagInput from "../components/TagInput";
 import "./SearchPage.css";
 
 export default function SearchPage() {
@@ -11,7 +12,7 @@ export default function SearchPage() {
   const { setSessionId } = useSession();
 
   const [role, setRole] = useState("");
-  const [location, setLocation] = useState("");
+  const [locations, setLocations] = useState<string[]>([]);
   const [salaryMin, setSalaryMin] = useState("");
   const [remoteOk, setRemoteOk] = useState(false);
 
@@ -25,10 +26,11 @@ export default function SearchPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (locations.length === 0) return;
     mutation.mutate({
       user_id: "demo_user",
       role,
-      location,
+      locations,
       salary_min: salaryMin ? Number(salaryMin) : null,
       remote_ok: remoteOk,
     });
@@ -52,13 +54,11 @@ export default function SearchPage() {
           required
         />
 
-        <label className="field-label">Location</label>
-        <input
-          className="text-input"
-          placeholder="e.g. Bangalore"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required
+        <label className="field-label">Locations</label>
+        <TagInput
+          tags={locations}
+          onChange={setLocations}
+          placeholder="e.g. Bangalore, Remote"
         />
 
         <label className="field-label">Minimum salary (optional)</label>

@@ -5,6 +5,7 @@ import { resumeJobSearch } from "../api/jobsApi";
 import { useSession } from "../context/SessionContext";
 import JobCard from "../components/JobCard";
 import type { JobSearchResponse } from "../api/types";
+import TagInput from "../components/TagInput";
 import "./ReviewPage.css";
 
 const RESULT_STORAGE_KEY = "careerpilot_last_result";
@@ -28,7 +29,7 @@ export default function ReviewPage() {
   };
 
   const [refineRole, setRefineRole] = useState("");
-  const [refineLocation, setRefineLocation] = useState("");
+  const [refineLocations, setRefineLocations] = useState<string[]>([]);
   const [refineSalaryMin, setRefineSalaryMin] = useState("");
 
   const mutation = useMutation({
@@ -66,7 +67,7 @@ export default function ReviewPage() {
 
     const updated_preferences: Record<string, unknown> = {};
     if (refineRole) updated_preferences.role = refineRole;
-    if (refineLocation) updated_preferences.location = refineLocation;
+    if (refineLocations.length > 0) {updated_preferences.locations = refineLocations;}
     if (refineSalaryMin) updated_preferences.salary_min = Number(refineSalaryMin);
 
     if (Object.keys(updated_preferences).length === 0) return;
@@ -101,11 +102,10 @@ export default function ReviewPage() {
               value={refineRole}
               onChange={(e) => setRefineRole(e.target.value)}
             />
-            <input
-              className="text-input"
-              placeholder="New location (optional)"
-              value={refineLocation}
-              onChange={(e) => setRefineLocation(e.target.value)}
+           <TagInput
+                 tags={refineLocations}
+                onChange={setRefineLocations}
+                placeholder="New locations (optional)"
             />
             <input
               className="text-input"
