@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useMutation } from "@tanstack/react-query";
-import { searchJobs } from "../api/jobsApi";
+import { searchJobsStream } from "../api/jobsApi";
 import { useSession } from "../context/SessionContext";
 import type { JobSearchResponse } from "../api/types";
 import TagInput from "../components/TagInput";
@@ -16,24 +15,36 @@ export default function SearchPage() {
   const [salaryMin, setSalaryMin] = useState("");
   const [remoteOk, setRemoteOk] = useState(false);
 
-  const mutation = useMutation({
-    mutationFn: searchJobs,
-    onSuccess: (data: JobSearchResponse) => {
-      setSessionId(data._session_id);
-      navigate("/review", { state: { result: data } });
-    },
-  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [progressMessage, setProgressMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (locations.length === 0) return;
-    mutation.mutate({
-      user_id: "demo_user",
-      role,
-      locations,
-      salary_min: salaryMin ? Number(salaryMin) : null,
-      remote_ok: remoteOk,
-    });
+
+    setIsSearching(true);
+    setError(null);
+    setProgressMessage("Starting search...");
+
+    try {
+      const result: JobSearchResponse = await searchJobsStream(
+        {
+          user_id: "demo_user",
+          role,
+          locations,
+          salary_min: salaryMin ? Number(salaryMin) : null,
+          remote_ok: remoteOk,
+        },
+        (progress) => setProgressMessage(progress.message)
+      );
+
+      setSessionId(result._session_id);
+      navigate("/review", { state: { result } });
+    } catch (err) {
+      setError("Search failed. Try again in a moment.");
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -45,49 +56,60 @@ export default function SearchPage() {
           We'll search across multiple job sources and rank results against your profile.
         </p>
 
-        <label className="field-label">Role</label>
-        <input
-          className="text-input"
-          placeholder="e.g. Backend Engineer"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          required
-        />
-
-        <label className="field-label">Locations</label>
-        <TagInput
-          tags={locations}
-          onChange={setLocations}
-          placeholder="e.g. Bangalore, Remote"
-        />
-
-        <label className="field-label">Minimum salary (optional)</label>
-        <input
-          className="text-input"
-          type="number"
-          placeholder="e.g. 600000"
-          value={salaryMin}
-          onChange={(e) => setSalaryMin(e.target.value)}
-        />
-
-        <label className="checkbox-row">
+        <div className="field-group">
+          <label className="field-label">Role</label>
           <input
-            type="checkbox"
-            checked={remoteOk}
-            onChange={(e) => setRemoteOk(e.target.checked)}
+            className="text-input"
+            placeholder="e.g. Backend Engineer"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+            disabled={isSearching}
           />
-          Open to remote roles
-        </label>
 
-        {mutation.isError && (
-          <div className="error-banner">
-            {(mutation.error as any)?.response?.data?.detail ??
-              "Search failed. Try again in a moment."}
+          <label className="field-label">Locations</label>
+          <TagInput
+            tags={locations}
+            onChange={setLocations}
+            placeholder="e.g. Bangalore, Remote"
+          />
+        </div>
+
+        <div className="field-group field-group--optional">
+          <p className="field-group-heading">Preferences</p>
+
+          <label className="field-label">Minimum salary</label>
+          <input
+            className="text-input"
+            type="number"
+            placeholder="e.g. 600000"
+            value={salaryMin}
+            onChange={(e) => setSalaryMin(e.target.value)}
+            disabled={isSearching}
+          />
+
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={remoteOk}
+              onChange={(e) => setRemoteOk(e.target.checked)}
+              disabled={isSearching}
+            />
+            Open to remote roles
+          </label>
+        </div>
+
+        {error && <div className="error-banner">{error}</div>}
+
+        {isSearching && (
+          <div className="progress-indicator">
+            <span className="progress-pulse" />
+            <span className="mono">{progressMessage}</span>
           </div>
         )}
 
-        <button className="submit-btn" type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Searching…" : "Find matching jobs"}
+        <button className="submit-btn" type="submit" disabled={isSearching}>
+          {isSearching ? "Searching…" : "Find matching jobs"}
         </button>
       </form>
     </div>

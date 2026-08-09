@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { RankedJob } from "../api/types";
 import MatchScoreRing from "./MatchScoreRing";
 import "./JobCard.css";
@@ -9,6 +10,7 @@ interface JobCardProps {
 
 export default function JobCard({ job, explanation }: JobCardProps) {
   const { score_breakdown } = job;
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="job-card">
@@ -20,7 +22,20 @@ export default function JobCard({ job, explanation }: JobCardProps) {
         <MatchScoreRing score={job.match_score} />
       </div>
 
-      {explanation && <p className="job-explanation">{explanation}</p>}
+      {explanation && (
+        <div className="job-explanation-wrap">
+          <p className={`job-explanation ${expanded ? "" : "job-explanation--clamped"}`}>
+            {explanation}
+          </p>
+          <button
+            type="button"
+            className="explanation-toggle"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Show less" : "Show more"}
+          </button>
+        </div>
+      )}
 
       {score_breakdown.seniority_penalty_applied && (
         <div className="job-flag">Seniority level may exceed your current experience</div>
@@ -31,7 +46,7 @@ export default function JobCard({ job, explanation }: JobCardProps) {
 
       <div className="skills-row">
         {score_breakdown.matched_skills.map((s) => (
-          <span key={s} className="skill-tag skill-tag--matched mono">{s}</span>
+          <span key={s} className="skill-tag skill-tag--matched mono">✓ {s}</span>
         ))}
         {score_breakdown.missing_skills.map((s) => (
           <span key={s} className="skill-tag skill-tag--missing mono">{s}</span>

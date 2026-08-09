@@ -1,7 +1,7 @@
-.match-ring {
+ .match-ring {
   position: relative;
-  width: 84px;
-  height: 84px;
+  width: 72px;
+  height: 72px;
   flex-shrink: 0;
 }
 
@@ -10,8 +10,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -20,9 +20,5 @@
 }
 
 .match-ring circle:first-child {
-  opacity: 0.3;
-}
-
-.match-ring circle:last-child {
-  filter: drop-shadow(0 0 8px rgba(126, 231, 217, 0.35));
+  opacity: 0.4;
 }

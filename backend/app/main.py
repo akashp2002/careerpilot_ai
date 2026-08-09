@@ -26,6 +26,8 @@ from app.models.resume import JobSearchRequest
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+import json as json_module
 
 
 
@@ -110,6 +112,15 @@ async def upload_resume(
 
     return verified
 
+NODE_LABELS = {
+    "supervisor": "Expanding search terms based on your profile...",
+    "job_search": "Searching job boards...",
+    "jd_analysis": "Analyzing job requirements...",
+    "matching_ranking": "Ranking matches against your profile...",
+    "explanation": "Writing explanations for top matches...",
+    "hitl": "Ready for your review.",
+}
+
 @app.post("/api/jobs/search")
 async def start_job_search(request: JobSearchRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
@@ -159,6 +170,77 @@ class JobResumeRequest(BaseModel):
     session_id: str
     approved: bool
     updated_preferences: Optional[dict] = None
+
+
+@app.post("/api/jobs/search/stream")
+async def start_job_search_stream(request: JobSearchRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(CandidateProfile).where(CandidateProfile.user_id == request.user_id)
+    )
+    profile_row = result.scalar_one_or_none()
+
+    if profile_row is None:
+        raise HTTPException(status_code=404, detail=f"No candidate profile found for user_id '{request.user_id}'. Upload a resume first.")
+
+    candidate_profile = {
+        "basics": profile_row.basics,
+        "skills": profile_row.skills,
+        "experience": profile_row.experience,
+        "education": profile_row.education,
+        "projects": profile_row.projects,
+    }
+
+    preferences = {
+        "role": request.role,
+        "locations": request.locations,
+        "salary_min": request.salary_min,
+        "salary_max": request.salary_max,
+        "remote_ok": request.remote_ok,
+    }
+
+    graph = app.state.graph
+    session_id = f"{request.user_id}:{uuid.uuid4()}"
+    config = {"configurable": {"thread_id": session_id}}
+
+    initial_state: GraphState = {
+        "candidate_profile": candidate_profile,
+        "preferences": preferences,
+        "raw_listings": [],
+        "analyzed_jobs": [],
+        "ranked_jobs": [],
+        "explanations": {},
+        "iteration": 0,
+        "user_feedback": None,
+    }
+
+    async def event_generator():
+        final_state = None
+        async for chunk in graph.astream(initial_state, config=config, stream_mode="updates"):
+            for node_name, node_output in chunk.items():
+                label = NODE_LABELS.get(node_name, f"Running {node_name}...")
+                event = {"type": "progress", "node": node_name, "message": label}
+                yield f"data: {json_module.dumps(event)}\n\n"
+                final_state = node_output
+
+        state_snapshot = await graph.aget_state(config)
+        result_data = dict(state_snapshot.values)
+        result_data["_session_id"] = session_id
+
+        # graph.astream() + aget_state() doesn't surface __interrupt__ the
+        # way ainvoke() does automatically - extract it manually from tasks
+        # so the frontend's isPaused check works the same for both endpoints
+        interrupts = []
+        for task in state_snapshot.tasks:
+            if task.interrupts:
+                for intr in task.interrupts:
+                    interrupts.append({"value": intr.value, "id": intr.id})
+        if interrupts:
+            result_data["__interrupt__"] = interrupts
+
+        final_event = {"type": "complete", "result": result_data}
+        yield f"data: {json_module.dumps(final_event)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @app.post("/api/jobs/resume")

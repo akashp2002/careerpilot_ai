@@ -10,28 +10,24 @@
 
 .upload-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 480px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 42px 40px;
+  border-radius: 10px;
+  padding: 40px 36px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 4px;
 }
-
 
 .upload-card h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 26px;
+  margin-bottom: 4px;
 }
 
-
-
 .dropzone {
-  border: 1.5px dashed var(--border);
+  border: 1px dashed var(--border);
   border-radius: 8px;
   padding: 32px 20px;
   text-align: center;
@@ -42,11 +38,11 @@
 
 .dropzone--active {
   border-color: var(--accent);
-  background: rgba(63, 207, 180, 0.06);
+  background: rgba(30, 58, 95, 0.04);
 }
 
 .dropzone--filled {
-  border-color: var(--accent-dim);
+  border-color: var(--text-muted);
   border-style: solid;
 }
 
@@ -65,16 +61,5 @@
 
 .file-meta {
   font-size: 12px;
-}
-
-
-
-.submit-btn:hover:not(:disabled) {
-  background: var(--accent-dim);
-}
-
-.submit-btn:disabled {
-  background: var(--border);
   color: var(--text-muted);
-  cursor: not-allowed;
 }
