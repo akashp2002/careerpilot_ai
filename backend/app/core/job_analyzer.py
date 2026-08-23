@@ -29,8 +29,21 @@ RULES:
 - Each object MUST include the same "index" as its corresponding input.
 - Extract ONLY what is explicitly stated or clearly implied by that listing's text.
 - If a listing's description is vague/truncated, extract what you can, leave the rest null/empty.
-- Return ONLY the JSON array. No markdown, no backticks, no preamble.
+- Return ONLY the JSON array. No markdown, no backticks, no preamble, no commentary after the array.
 """
+
+
+def extract_json_array(content: str):
+    """
+    Parses the first valid JSON value from the model's response, ignoring
+    any trailing text the model appends after it (commentary, leftover
+    reasoning, etc.) - handles the "Extra data" class of parse failures
+    without needing to know what the trailing content actually is.
+    """
+    decoder = json.JSONDecoder()
+    content = content.strip()
+    obj, _ = decoder.raw_decode(content)
+    return obj
 
 
 @traceable(name="jd_analysis_llm_call")
@@ -44,16 +57,19 @@ def analyze_job_batch(raw_jobs: list[dict], max_retries: int = 2) -> list[Analyz
     for attempt in range(max_retries + 1):
         try:
             response = call_with_retry(lambda: client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 messages=[
                     {"role": "system", "content": BATCH_SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(batch_input)},
                 ],
                 temperature=0,
+                reasoning_effort="low",
+                include_reasoning=False,
+                max_completion_tokens=2048,
             ))
             content = response.choices[0].message.content.strip()
             content = re.sub(r'^```json|```$', '', content, flags=re.MULTILINE).strip()
-            analyses = json.loads(content)
+            analyses = extract_json_array(content)
 
             results = []
             for analysis in analyses:

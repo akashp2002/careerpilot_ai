@@ -44,7 +44,7 @@ Score breakdown:
 """
 
     response = call_with_retry(lambda: client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": context},

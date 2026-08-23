@@ -42,7 +42,8 @@ def parse_resume_text(raw_text: str, max_retries: int = 2) -> ParsedResume:
     for attempt in range(max_retries + 1):
         try:
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
+                max_completion_tokens=2048,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": cleaned},

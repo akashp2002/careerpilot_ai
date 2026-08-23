@@ -2,9 +2,9 @@ import asyncio
 from app.agents.state import GraphState
 from app.core.job_analyzer import analyze_job_batch
 
-MAX_LISTINGS_TO_ANALYZE = 40
+MAX_LISTINGS_TO_ANALYZE = 15
 BATCH_SIZE = 5
-MAX_CONCURRENT_BATCHES = 5
+MAX_CONCURRENT_BATCHES = 3
 
 
 async def jd_analysis_node(state: GraphState) -> GraphState:

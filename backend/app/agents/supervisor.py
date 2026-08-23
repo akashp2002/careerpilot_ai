@@ -30,7 +30,7 @@ def expand_search_terms(role: str, candidate_skills: list[str]) -> list[str]:
 
     try:
         response = call_with_retry(lambda: client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": context},

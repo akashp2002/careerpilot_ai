@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from fastmcp import FastMCP
+from rapidfuzz import fuzz
 
 load_dotenv()
 
@@ -70,17 +71,18 @@ def search_remoteok_jobs(role: str, results_limit: int = 10) -> list[dict]:
     response.raise_for_status()
     data = response.json()
 
-    # First element is API metadata/legal notice, not a job listing
+        # First element is API metadata/legal notice, not a job listing
     jobs = data[1:] if data and "legal" in data[0] else data
 
-    role_lower = role.lower()
+    ROLE_MATCH_THRESHOLD = 60
     matched = []
 
     for job in jobs:
         title = job.get("position", "")
-        if role_lower in title.lower():
+        score = fuzz.partial_ratio(role.lower(), title.lower())
+        if score >= ROLE_MATCH_THRESHOLD:
             matched.append({
-                "id": str(job.get("id","")),
+                "id": str(job.get("id", "")),
                 "title": title,
                 "company": job.get("company"),
                 "location": job.get("location") or "Remote",
