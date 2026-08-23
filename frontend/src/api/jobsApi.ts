@@ -10,3 +10,57 @@ export async function resumeJobSearch(request: JobResumeRequest): Promise<JobSea
   const response = await apiClient.post<JobSearchResponse>("/api/jobs/resume", request);
   return response.data;
 }
+
+export interface StreamProgressEvent {
+  type: "progress";
+  node: string;
+  message: string;
+}
+
+export interface StreamCompleteEvent {
+  type: "complete";
+  result: JobSearchResponse;
+}
+
+type StreamEvent = StreamProgressEvent | StreamCompleteEvent;
+
+export async function searchJobsStream(
+  request: JobSearchRequest,
+  onProgress: (event: StreamProgressEvent) => void
+): Promise<JobSearchResponse> {
+  const response = await fetch("http://127.0.0.1:8000/api/jobs/search/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.body) throw new Error("No response stream available");
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let finalResult: JobSearchResponse | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const event: StreamEvent = JSON.parse(line.slice(6));
+
+      if (event.type === "progress") {
+        onProgress(event);
+      } else if (event.type === "complete") {
+        finalResult = event.result;
+      }
+    }
+  }
+
+  if (!finalResult) throw new Error("Stream ended without a result");
+  return finalResult;
+}

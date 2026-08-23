@@ -161,16 +161,24 @@ def check_experience_match(candidate_years: float, min_required: int | None, job
 
 
 def check_location_match(candidate_location: str, job_location: str, preferences: dict) -> float:
-    pref_location = (preferences.get("location") or "").lower()
+    pref_locations = [loc.lower() for loc in (preferences.get("locations") or [])]
     job_loc = (job_location or "").lower()
 
     if preferences.get("remote_ok") and "remote" in job_loc:
         return 1.0
-    if pref_location and pref_location in job_loc:
-        return 1.0
-    if pref_location and job_loc:
-        return fuzz.partial_ratio(pref_location, job_loc) / 100
-    return 0.5  # unknown, neutral
+    if not pref_locations or not job_loc:
+        return 0.5  # unknown, neutral
+
+    # Best match across all acceptable locations - job only needs to
+    # satisfy ONE of the candidate's preferred locations, not all
+    best_score = 0.0
+    for pref in pref_locations:
+        if pref in job_loc:
+            return 1.0
+        score = fuzz.partial_ratio(pref, job_loc) / 100
+        best_score = max(best_score, score)
+
+    return best_score
 
 
 def compute_data_completeness(job: dict) -> float:

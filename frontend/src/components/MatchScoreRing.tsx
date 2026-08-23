@@ -3,7 +3,7 @@ interface MatchScoreRingProps {
 }
 
 export default function MatchScoreRing({ score }: MatchScoreRingProps) {
-  const radius = 34;
+  const radius = 30;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
 
@@ -11,19 +11,19 @@ export default function MatchScoreRing({ score }: MatchScoreRingProps) {
 
   return (
     <div className="match-ring">
-      <svg width="84" height="84" viewBox="0 0 84 84">
-        <circle cx="42" cy="42" r={radius} fill="none" stroke="var(--border)" strokeWidth="6" />
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r={radius} fill="none" stroke="var(--border)" strokeWidth="5" />
         <circle
-          cx="42"
-          cy="42"
+          cx="36"
+          cy="36"
           r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="6"
+          strokeWidth="5"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          transform="rotate(-90 42 42)"
+          transform="rotate(-90 36 36)"
           style={{ transition: "stroke-dashoffset 0.6s ease" }}
         />
       </svg>

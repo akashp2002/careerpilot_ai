@@ -54,7 +54,7 @@ class VerifiedResume(BaseModel):
 class JobSearchRequest(BaseModel):
     user_id: str = "demo_user"
     role: str
-    location: str
+    locations: list[str]
     salary_min: Optional[int] = None
     salary_max: Optional[int] = None
     remote_ok: Optional[bool] = None

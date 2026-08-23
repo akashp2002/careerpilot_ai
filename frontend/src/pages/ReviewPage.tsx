@@ -5,6 +5,7 @@ import { resumeJobSearch } from "../api/jobsApi";
 import { useSession } from "../context/SessionContext";
 import JobCard from "../components/JobCard";
 import type { JobSearchResponse } from "../api/types";
+import TagInput from "../components/TagInput";
 import "./ReviewPage.css";
 
 const RESULT_STORAGE_KEY = "careerpilot_last_result";
@@ -27,14 +28,16 @@ export default function ReviewPage() {
     sessionStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(data));
   };
 
+  const [refineOpen, setRefineOpen] = useState(false);
   const [refineRole, setRefineRole] = useState("");
-  const [refineLocation, setRefineLocation] = useState("");
+  const [refineLocations, setRefineLocations] = useState<string[]>([]);
   const [refineSalaryMin, setRefineSalaryMin] = useState("");
 
   const mutation = useMutation({
     mutationFn: resumeJobSearch,
     onSuccess: (data: JobSearchResponse) => {
       setResult(data);
+      setRefineOpen(false);
     },
   });
 
@@ -66,7 +69,7 @@ export default function ReviewPage() {
 
     const updated_preferences: Record<string, unknown> = {};
     if (refineRole) updated_preferences.role = refineRole;
-    if (refineLocation) updated_preferences.location = refineLocation;
+    if (refineLocations.length > 0) {updated_preferences.locations = refineLocations;}
     if (refineSalaryMin) updated_preferences.salary_min = Number(refineSalaryMin);
 
     if (Object.keys(updated_preferences).length === 0) return;
@@ -76,36 +79,38 @@ export default function ReviewPage() {
 
   return (
     <div className="review-page">
-      <div className="review-header">
-        <p className="eyebrow mono">
-          {isPaused ? "REVIEW RESULTS" : "SEARCH COMPLETE"} · ITERATION {result.iteration}
-        </p>
-        <h1>{result.ranked_jobs.length} matching roles found</h1>
+      <div className="review-topbar">
+        <div>
+          <p className="eyebrow mono">
+            {isPaused ? "REVIEW RESULTS" : "SEARCH COMPLETE"} · ITERATION {result.iteration}
+          </p>
+          <h1>{result.ranked_jobs.length} matching roles found</h1>
+        </div>
+
+        {isPaused && (
+          <button
+            type="button"
+            className="submit-btn submit-btn--secondary refine-toggle"
+            onClick={() => setRefineOpen((v) => !v)}
+          >
+            Refine {refineOpen ? "▴" : "▾"}
+          </button>
+        )}
       </div>
 
-      <div className="job-list">
-        {result.ranked_jobs.map((job) => (
-          <JobCard key={job.id} job={job} explanation={result.explanations[job.id]} />
-        ))}
-      </div>
-
-      {isPaused && (
-        <div className="review-actions">
-          <h2>Not quite right?</h2>
-          <p className="subtitle">Refine your search and we'll find better matches.</p>
-
-          <div className="refine-grid">
+      {isPaused && refineOpen && (
+        <div className="refine-panel">
+          <div className="refine-fields">
             <input
               className="text-input"
               placeholder="New role (optional)"
               value={refineRole}
               onChange={(e) => setRefineRole(e.target.value)}
             />
-            <input
-              className="text-input"
-              placeholder="New location (optional)"
-              value={refineLocation}
-              onChange={(e) => setRefineLocation(e.target.value)}
+            <TagInput
+              tags={refineLocations}
+              onChange={setRefineLocations}
+              placeholder="New locations (optional)"
             />
             <input
               className="text-input"
@@ -122,33 +127,36 @@ export default function ReviewPage() {
             </div>
           )}
 
-          <div className="action-row">
-            <button
-              className="submit-btn submit-btn--secondary"
-              onClick={handleRefine}
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "Refining…" : "Refine & search again"}
-            </button>
-            <button
-              className="submit-btn"
-              onClick={handleApprove}
-              disabled={mutation.isPending}
-            >
-              Approve these results
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!isPaused && (
-        <div className="review-actions">
-          <p className="subtitle">You approved these results. Good luck with your applications!</p>
-          <button className="submit-btn" onClick={() => navigate("/")}>
-            Start a new search
+          <button
+            className="submit-btn"
+            onClick={handleRefine}
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? "Refining…" : "Search again with these changes"}
           </button>
         </div>
       )}
+
+      <div className="job-list">
+        {result.ranked_jobs.map((job) => (
+          <JobCard key={job.id} job={job} explanation={result.explanations[job.id]} />
+        ))}
+      </div>
+
+      <div className="review-footer">
+        {isPaused ? (
+          <button className="submit-btn submit-btn--large" onClick={handleApprove} disabled={mutation.isPending}>
+            Approve these results
+          </button>
+        ) : (
+          <>
+            <p className="subtitle">You approved these results. Good luck with your applications!</p>
+            <button className="submit-btn submit-btn--large" onClick={() => navigate("/")}>
+              Start a new search
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
