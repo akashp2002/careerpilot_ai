@@ -42,6 +42,7 @@ def search_jobs(role: str, location: str, results_limit: int = 10) -> list[dict]
     for job in data.get("results", []):
         listings.append({
             "id": str(job.get("id","")),
+            "source": "adzuna",
             "title": job.get("title"),
             "company": job.get("company", {}).get("display_name"),
             "location": job.get("location", {}).get("display_name"),
@@ -83,6 +84,7 @@ def search_remoteok_jobs(role: str, results_limit: int = 10) -> list[dict]:
         if score >= ROLE_MATCH_THRESHOLD:
             matched.append({
                 "id": str(job.get("id", "")),
+                "source": "remoteok",
                 "title": title,
                 "company": job.get("company"),
                 "location": job.get("location") or "Remote",

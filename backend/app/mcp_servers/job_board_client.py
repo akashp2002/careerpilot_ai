@@ -48,7 +48,11 @@ async def search_remoteok_via_mcp(role: str, results_limit: int = 10) -> list[di
 
 
 def _dedupe_listings(listings: list[dict]) -> list[dict]:
-    """Dedupes cross-posted jobs by normalized title+company pair."""
+    """Dedupes cross-posted jobs by normalized title+company pair, then
+    sorts by a stable key so repeated searches with the same underlying
+    jobs consistently select the same subset - maximizing JD Analysis
+    cache hit rate across runs, since the external APIs don't guarantee
+    stable ordering between calls."""
     seen = set()
     deduped = []
     for job in listings:
@@ -56,8 +60,9 @@ def _dedupe_listings(listings: list[dict]) -> list[dict]:
         if key not in seen:
             seen.add(key)
             deduped.append(job)
-    return deduped
 
+    deduped.sort(key=lambda j: (j.get("source", ""), j.get("id", "")))
+    return deduped
 
 async def search_all_sources(role: str, location: str, results_limit: int = 10) -> list[dict]:
     """

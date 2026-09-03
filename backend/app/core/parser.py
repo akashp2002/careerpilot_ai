@@ -5,6 +5,7 @@ from groq import Groq
 from dotenv import load_dotenv
 from app.models.resume import ParsedResume
 from langsmith import traceable
+from app.core.groq_utils import call_with_retry
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -27,12 +28,14 @@ RULES:
 - Return ONLY the JSON object. No markdown, no backticks, no preamble.
 """
 
+
 def clean_text(raw_text: str) -> str:
     """Light preprocessing before LLM parsing."""
     text = re.sub(r'\n{3,}', '\n\n', raw_text)      # collapse excess blank lines
     text = re.sub(r'[ \t]{2,}', ' ', text)            # collapse repeated spaces/tabs
     text = text.strip()
     return text
+
 
 @traceable(name="resume_parse_llm_call")
 def parse_resume_text(raw_text: str, max_retries: int = 2) -> ParsedResume:
@@ -41,22 +44,22 @@ def parse_resume_text(raw_text: str, max_retries: int = 2) -> ParsedResume:
     last_error = None
     for attempt in range(max_retries + 1):
         try:
-            response = client.chat.completions.create(
+            response = call_with_retry(lambda: client.chat.completions.create(
                 model="openai/gpt-oss-120b",
-                max_completion_tokens=2048,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": cleaned},
                 ],
                 temperature=0,
-            )
+                reasoning_effort="low",
+                include_reasoning=False,
+                max_completion_tokens=4096,
+            ))
             content = response.choices[0].message.content.strip()
-
-            # strip accidental markdown fences, just in case
             content = re.sub(r'^```json|```$', '', content, flags=re.MULTILINE).strip()
 
             parsed_json = json.loads(content)
-            parsed_json["raw_text"] = raw_text  # attach original for later fact-checking
+            parsed_json["raw_text"] = raw_text
 
             return ParsedResume(**parsed_json)
 
