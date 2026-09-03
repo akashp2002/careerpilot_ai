@@ -2,14 +2,24 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Text, Integer, DateTime, JSON
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import ForeignKey
+
 from app.core.database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
 class CandidateProfile(Base):
     __tablename__ = "candidate_profiles"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(String, nullable=False, unique=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, unique=True, index=True)
 
     basics = Column(JSON, nullable=False)
     skills = Column(JSON, nullable=False, default=list)

@@ -2,12 +2,14 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { uploadResume } from "../api/resumeApi";
+import { useAuth } from "../context/AuthContext";
 import "./UploadPage.css";
 
 export default function UploadPage() {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const { logout } = useAuth();
 
   const mutation = useMutation({
     mutationFn: uploadResume,
@@ -29,8 +31,18 @@ export default function UploadPage() {
     if (file) mutation.mutate(file);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <div className="upload-page">
+      <div className="top-bar">
+        <button onClick={handleLogout} className="sign-out-btn">
+          Sign out
+        </button>
+      </div>
       <div className="upload-card">
         <p className="eyebrow mono">CANDIDATE PROFILE</p>
         <h1>Upload your resume</h1>

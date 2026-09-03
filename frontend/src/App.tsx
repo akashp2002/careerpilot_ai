@@ -1,14 +1,17 @@
 import { Routes, Route } from "react-router";
-import UploadPage from "./pages/UploadPage";
-import SearchPage from "./pages/SearchPage";
+import DashboardPage from "./pages/DashboardPage";
 import ReviewPage from "./pages/ReviewPage";
+import AuthPage from "./pages/AuthPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<UploadPage />} />
-      <Route path="/search" element={<SearchPage />} />
-      <Route path="/review" element={<ReviewPage />} />
+      <Route path="/login" element={<AuthPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/review" element={<ReviewPage />} />
+      </Route>
     </Routes>
   );
 }
