@@ -23,3 +23,11 @@ class CandidateProfile(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class SearchTermCache(Base):
+    __tablename__ = "search_term_cache"
+
+    role = Column(String, primary_key=True)
+    expanded_terms = Column(JSON, nullable=False)
+    cached_at = Column(DateTime, default=datetime.utcnow)

@@ -1,7 +1,7 @@
 import os
 from groq import Groq
 from dotenv import load_dotenv
-from app.core.groq_utils import call_with_retry
+from app.core.llm_client import get_structured_completion
 from langsmith import traceable
 
 
@@ -43,13 +43,10 @@ Score breakdown:
 - Seniority mismatch flagged: {breakdown.get('seniority_penalty_applied')}
 """
 
-    response = call_with_retry(lambda: client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": context},
-        ],
+    return get_structured_completion(
+        system_prompt=SYSTEM_PROMPT,
+        user_content=context,
+        groq_model="openai/gpt-oss-20b",
         temperature=0.3,
-    ))
+    )
 
-    return response.choices[0].message.content.strip()

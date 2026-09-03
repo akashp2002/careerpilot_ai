@@ -5,6 +5,7 @@ from groq import Groq
 from dotenv import load_dotenv
 from app.models.job import AnalyzedJob
 from app.core.groq_utils import call_with_retry
+from app.core.llm_client import get_structured_completion
 from langsmith import traceable
 
 load_dotenv()
@@ -56,18 +57,12 @@ def analyze_job_batch(raw_jobs: list[dict], max_retries: int = 2) -> list[Analyz
     last_error = None
     for attempt in range(max_retries + 1):
         try:
-            response = call_with_retry(lambda: client.chat.completions.create(
-                model="openai/gpt-oss-20b",
-                messages=[
-                    {"role": "system", "content": BATCH_SYSTEM_PROMPT},
-                    {"role": "user", "content": json.dumps(batch_input)},
-                ],
+            content = get_structured_completion(
+                system_prompt=BATCH_SYSTEM_PROMPT,
+                user_content=json.dumps(batch_input),
+                groq_model="openai/gpt-oss-20b",
                 temperature=0,
-                reasoning_effort="low",
-                include_reasoning=False,
-                max_completion_tokens=2048,
-            ))
-            content = response.choices[0].message.content.strip()
+            )
             content = re.sub(r'^```json|```$', '', content, flags=re.MULTILINE).strip()
             analyses = extract_json_array(content)
 
@@ -85,6 +80,7 @@ def analyze_job_batch(raw_jobs: list[dict], max_retries: int = 2) -> list[Analyz
                 raw_job = raw_jobs[idx]
                 results.append(AnalyzedJob(
                     id=raw_job.get("id", ""),
+                    source=raw_job.get("source", ""),
                     title=raw_job.get("title", ""),
                     company=raw_job.get("company", ""),
                     location=raw_job.get("location", ""),

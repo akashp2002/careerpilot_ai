@@ -4,6 +4,7 @@ from typing import Optional
 
 class AnalyzedJob(BaseModel):
     id: str
+    source: str
     title: str
     company: str
     location: str

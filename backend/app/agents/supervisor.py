@@ -1,12 +1,12 @@
-import os
 import json
-from groq import Groq
-from dotenv import load_dotenv
+from datetime import datetime, timedelta
+from sqlalchemy import select
 from app.agents.state import GraphState
-from app.core.groq_utils import call_with_retry
+from app.core.llm_client import get_structured_completion
+from app.core.database import AsyncSessionLocal
+from app.models.db_models import SearchTermCache
 
-load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+SEARCH_TERM_CACHE_TTL_HOURS = 24
 
 SYSTEM_PROMPT = """You are a job search strategist. Given a candidate's role
 request and their background, suggest up to 3 alternate job title phrasings
@@ -24,20 +24,41 @@ RULES:
 """
 
 
+async def _get_cached_terms(role: str) -> list[str] | None:
+    cutoff = datetime.utcnow() - timedelta(hours=SEARCH_TERM_CACHE_TTL_HOURS)
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(SearchTermCache).where(
+                SearchTermCache.role == role.lower(),
+                SearchTermCache.cached_at >= cutoff,
+            )
+        )
+        row = result.scalar_one_or_none()
+        return row.expanded_terms if row else None
+
+
+async def _save_terms_to_cache(role: str, terms: list[str]) -> None:
+    async with AsyncSessionLocal() as session:
+        existing = await session.get(SearchTermCache, role.lower())
+        if existing:
+            existing.expanded_terms = terms
+            existing.cached_at = datetime.utcnow()
+        else:
+            session.add(SearchTermCache(role=role.lower(), expanded_terms=terms))
+        await session.commit()
+
+
 def expand_search_terms(role: str, candidate_skills: list[str]) -> list[str]:
     """Uses LLM reasoning to suggest alternate job title phrasings for broader search coverage."""
     context = f"Requested role: {role}\nCandidate skills: {', '.join(candidate_skills[:15])}"
 
     try:
-        response = call_with_retry(lambda: client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": context},
-            ],
-            temperature=0.2,
-        ))
-        content = response.choices[0].message.content.strip()
+        content = get_structured_completion(
+            system_prompt=SYSTEM_PROMPT,
+            user_content=context,
+            groq_model="openai/gpt-oss-20b",
+            temperature=0,  # was 0.2 - determinism matters more here than phrasing variety, since this feeds the cache
+        )
         alternates = json.loads(content)
         return [role] + [a for a in alternates if isinstance(a, str) and a.lower() != role.lower()]
     except Exception as e:
@@ -45,12 +66,18 @@ def expand_search_terms(role: str, candidate_skills: list[str]) -> list[str]:
         return [role]
 
 
-def supervisor_node(state: GraphState) -> GraphState:
+async def supervisor_node(state: GraphState) -> GraphState:
     preferences = state.get("preferences", {})
     candidate_profile = state.get("candidate_profile", {})
     role = preferences.get("role", "")
 
-    search_terms = expand_search_terms(role, candidate_profile.get("skills", []))
+    cached_terms = await _get_cached_terms(role)
+    if cached_terms:
+        print(f"[Supervisor] using cached search terms for role='{role}'")
+        search_terms = cached_terms
+    else:
+        search_terms = expand_search_terms(role, candidate_profile.get("skills", []))
+        await _save_terms_to_cache(role, search_terms)
 
     print(f"[Supervisor] iteration={state.get('iteration', 0)} | role='{role}' -> search_terms={search_terms}")
 
