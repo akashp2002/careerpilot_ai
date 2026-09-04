@@ -72,6 +72,11 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/api/profile/status")
 async def get_profile_status(
     db: AsyncSession = Depends(get_db),
