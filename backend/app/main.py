@@ -5,13 +5,23 @@ import sys
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from contextlib import asynccontextmanager
+# pyrefly: ignore [missing-import]
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from app.agents.graph import build_graph
 from app.agents.state import GraphState
 from langgraph.types import Command    
 import uuid
+# pyrefly: ignore [missing-import]
 import pdfplumber
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+# pyrefly: ignore [missing-import]
+from slowapi.errors import RateLimitExceeded
+# pyrefly: ignore [missing-import]
+from slowapi import _rate_limit_exceeded_handler
+from app.core.rate_limit import limiter
+from app.api.auth import router as auth_router
+from app.core.security import get_current_user
+from app.models.db_models import User
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -45,6 +55,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CareerPilot AI", lifespan=lifespan)
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.include_router(auth_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -57,10 +71,32 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+@app.get("/api/profile/status")
+async def get_profile_status(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    profile = await db.scalar(
+        select(CandidateProfile).where(CandidateProfile.user_id == current_user.id)
+    )
+    if profile is None:
+        return {"has_profile": False}
+    return {
+        "has_profile": True,
+        "name": profile.basics.get("name") if profile.basics else None,
+        "skills": (profile.skills or [])[:8],
+        "experience_count": len(profile.experience) if profile.experience else 0,
+    }
+
+
+
 @app.post("/api/resume/upload", response_model=VerifiedResume)
+@limiter.limit("10/minute")
 async def upload_resume(
+    request: Request,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
@@ -88,7 +124,7 @@ async def upload_resume(
         raise HTTPException(status_code=500, detail=str(e))
 
     verified = verify_resume(parsed)
-    user_id = "demo_user"  # placeholder until auth is added
+    user_id = current_user.id
 
     existing_profile = await db.scalar(
         select(CandidateProfile).where(CandidateProfile.user_id == user_id)
@@ -122,14 +158,20 @@ NODE_LABELS = {
 }
 
 @app.post("/api/jobs/search")
-async def start_job_search(request: JobSearchRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def start_job_search(
+    request: Request,
+    payload: JobSearchRequest, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(
-        select(CandidateProfile).where(CandidateProfile.user_id == request.user_id)
+        select(CandidateProfile).where(CandidateProfile.user_id == current_user.id)
     )
     profile_row = result.scalar_one_or_none()
 
     if profile_row is None:
-        raise HTTPException(status_code=404, detail=f"No candidate profile found for user_id '{request.user_id}'. Upload a resume first.")
+        raise HTTPException(status_code=404, detail=f"No candidate profile found for user_id '{current_user.id}'. Upload a resume first.")
 
     candidate_profile = {
         "basics": profile_row.basics,
@@ -140,15 +182,15 @@ async def start_job_search(request: JobSearchRequest, db: AsyncSession = Depends
     }
 
     preferences = {
-        "role": request.role,
-        "locations": request.locations,
-        "salary_min": request.salary_min,
-        "salary_max": request.salary_max,
-        "remote_ok": request.remote_ok,
+        "role": payload.role,
+        "locations": payload.locations,
+        "salary_min": payload.salary_min,
+        "salary_max": payload.salary_max,
+        "remote_ok": payload.remote_ok,
     }
 
     graph = app.state.graph
-    session_id = f"{request.user_id}:{uuid.uuid4()}"
+    session_id = f"{current_user.id}:{uuid.uuid4()}"
     config = {"configurable": {"thread_id": session_id}}
 
     initial_state: GraphState = {
@@ -173,14 +215,20 @@ class JobResumeRequest(BaseModel):
 
 
 @app.post("/api/jobs/search/stream")
-async def start_job_search_stream(request: JobSearchRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def start_job_search_stream(
+    request: Request,
+    payload: JobSearchRequest, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(
-        select(CandidateProfile).where(CandidateProfile.user_id == request.user_id)
+        select(CandidateProfile).where(CandidateProfile.user_id == current_user.id)
     )
     profile_row = result.scalar_one_or_none()
 
     if profile_row is None:
-        raise HTTPException(status_code=404, detail=f"No candidate profile found for user_id '{request.user_id}'. Upload a resume first.")
+        raise HTTPException(status_code=404, detail=f"No candidate profile found for user_id '{current_user.id}'. Upload a resume first.")
 
     candidate_profile = {
         "basics": profile_row.basics,
@@ -191,15 +239,15 @@ async def start_job_search_stream(request: JobSearchRequest, db: AsyncSession = 
     }
 
     preferences = {
-        "role": request.role,
-        "locations": request.locations,
-        "salary_min": request.salary_min,
-        "salary_max": request.salary_max,
-        "remote_ok": request.remote_ok,
+        "role": payload.role,
+        "locations": payload.locations,
+        "salary_min": payload.salary_min,
+        "salary_max": payload.salary_max,
+        "remote_ok": payload.remote_ok,
     }
 
     graph = app.state.graph
-    session_id = f"{request.user_id}:{uuid.uuid4()}"
+    session_id = f"{current_user.id}:{uuid.uuid4()}"
     config = {"configurable": {"thread_id": session_id}}
 
     initial_state: GraphState = {
@@ -244,20 +292,25 @@ async def start_job_search_stream(request: JobSearchRequest, db: AsyncSession = 
 
 
 @app.post("/api/jobs/resume")
-async def resume_job_search(request: JobResumeRequest):
+@limiter.limit("10/minute")
+async def resume_job_search(
+    request: Request,
+    payload: JobResumeRequest,
+    current_user: User = Depends(get_current_user)
+):
     graph = app.state.graph
-    config = {"configurable": {"thread_id": request.session_id}}
+    config = {"configurable": {"thread_id": payload.session_id}}
 
     existing_state = await graph.aget_state(config)
     if not existing_state or not existing_state.next:
         raise HTTPException(
             status_code=404,
-            detail=f"No active paused session found for session_id '{request.session_id}'. It may be invalid, already completed, or expired."
+            detail=f"No active paused session found for session_id '{payload.session_id}'. It may be invalid, already completed, or expired."
         )
 
-    resume_payload = {"approved": request.approved}
-    if not request.approved and request.updated_preferences:
-        resume_payload["updated_preferences"] = request.updated_preferences
+    resume_payload = {"approved": payload.approved}
+    if not payload.approved and payload.updated_preferences:
+        resume_payload["updated_preferences"] = payload.updated_preferences
 
     result = await graph.ainvoke(
         Command(resume=resume_payload),

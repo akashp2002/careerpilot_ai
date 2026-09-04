@@ -28,9 +28,15 @@ export async function searchJobsStream(
   request: JobSearchRequest,
   onProgress: (event: StreamProgressEvent) => void
 ): Promise<JobSearchResponse> {
+  const token = localStorage.getItem("token");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch("http://127.0.0.1:8000/api/jobs/search/stream", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(request),
   });
 
