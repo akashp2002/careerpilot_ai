@@ -28,13 +28,13 @@ def upgrade() -> None:
     sa.Column('cached_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('job_id')
     )
-    op.drop_index(op.f('checkpoints_thread_id_idx'), table_name='checkpoints')
-    op.drop_table('checkpoints')
-    op.drop_table('checkpoint_migrations')
-    op.drop_index(op.f('checkpoint_blobs_thread_id_idx'), table_name='checkpoint_blobs')
-    op.drop_table('checkpoint_blobs')
-    op.drop_index(op.f('checkpoint_writes_thread_id_idx'), table_name='checkpoint_writes')
-    op.drop_table('checkpoint_writes')
+    op.execute('DROP INDEX IF EXISTS checkpoints_thread_id_idx')
+    op.execute('DROP TABLE IF EXISTS checkpoints CASCADE')
+    op.execute('DROP TABLE IF EXISTS checkpoint_migrations CASCADE')
+    op.execute('DROP INDEX IF EXISTS checkpoint_blobs_thread_id_idx')
+    op.execute('DROP TABLE IF EXISTS checkpoint_blobs CASCADE')
+    op.execute('DROP INDEX IF EXISTS checkpoint_writes_thread_id_idx')
+    op.execute('DROP TABLE IF EXISTS checkpoint_writes CASCADE')
     # ### end Alembic commands ###
 
 

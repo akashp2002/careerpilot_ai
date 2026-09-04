@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
+# pyrefly: ignore [missing-import]
 from mcp import ClientSession, StdioServerParameters
+# pyrefly: ignore [missing-import]
 from mcp.client.stdio import stdio_client
 import asyncio
 
@@ -56,7 +58,7 @@ def _dedupe_listings(listings: list[dict]) -> list[dict]:
     seen = set()
     deduped = []
     for job in listings:
-        key = (job.get("title", "").strip().lower(), job.get("company", "").strip().lower())
+        key = ((job.get("title") or "").strip().lower(), (job.get("company") or "").strip().lower())
         if key not in seen:
             seen.add(key)
             deduped.append(job)
