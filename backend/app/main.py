@@ -38,6 +38,7 @@ from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json as json_module
+from app.core.guardrails import validate_pdf_size, validate_pdf_pages, validate_resume_text, validate_search_inputs
 
 
 
@@ -101,22 +102,26 @@ async def upload_resume(
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
+    # ── Guardrail: file size ──
+    contents = await file.read()
+    validate_pdf_size(contents)
+
     file_id = str(uuid.uuid4())
     file_path = os.path.join(UPLOAD_DIR, f"{file_id}.pdf")
-
-    contents = await file.read()
     with open(file_path, "wb") as f:
         f.write(contents)
 
     raw_text = ""
     with pdfplumber.open(file_path) as pdf:
+        # ── Guardrail: page count ──
+        validate_pdf_pages(len(pdf.pages))
         for page in pdf.pages:
             page_text = page.extract_text()
             if page_text:
                 raw_text += page_text + "\n"
 
-    if not raw_text.strip():
-        raise HTTPException(status_code=422, detail="Could not extract text from PDF. It may be a scanned image.")
+    # ── Guardrail: text quality + prompt injection ──
+    raw_text = validate_resume_text(raw_text)
 
     try:
         parsed = parse_resume_text(raw_text)
@@ -165,6 +170,9 @@ async def start_job_search(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    # ── Guardrail: search input validation ──
+    validate_search_inputs(payload.role, payload.locations, payload.salary_min, payload.salary_max)
+
     result = await db.execute(
         select(CandidateProfile).where(CandidateProfile.user_id == current_user.id)
     )
@@ -222,6 +230,9 @@ async def start_job_search_stream(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    # ── Guardrail: search input validation ──
+    validate_search_inputs(payload.role, payload.locations, payload.salary_min, payload.salary_max)
+
     result = await db.execute(
         select(CandidateProfile).where(CandidateProfile.user_id == current_user.id)
     )
