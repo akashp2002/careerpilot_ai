@@ -1,6 +1,4 @@
 import { test, expect } from '@playwright/test';
-import * as path from 'path';
-import * as fs from 'fs';
 
 test.describe('Dashboard & Job Search', () => {
   const timestamp = Date.now();
@@ -14,6 +12,11 @@ test.describe('Dashboard & Job Search', () => {
     await page.fill('input[type="email"]', testEmail);
     await page.fill('input[type="password"]', testPassword);
     await page.click('button[type="submit"]');
+    
+    // Wait for navigation and ensure the page is loaded
+    await page.waitForURL('http://localhost:5173/', { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    
     await expect(page).toHaveURL('http://localhost:5173/');
   });
 
