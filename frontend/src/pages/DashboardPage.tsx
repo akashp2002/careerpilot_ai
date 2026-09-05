@@ -89,7 +89,7 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   // Decide whether to show the uploader by default

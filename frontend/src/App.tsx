@@ -7,9 +7,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<AuthPage />} />
+      <Route path="/" element={<AuthPage />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/review" element={<ReviewPage />} />
       </Route>
     </Routes>

@@ -4,6 +4,7 @@
 .dashboard {
   min-height: 100vh;
   padding: 32px 24px;
+  background: var(--bg);
   position: relative;
 }
 
@@ -16,23 +17,22 @@
 .sign-out-btn {
   background: transparent;
   color: var(--text-muted);
-  border: 1px solid var(--border);
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   cursor: pointer;
 }
 
 .sign-out-btn:hover {
-  background: var(--surface-hover);
-  color: var(--danger);
-  border-color: #cbd5e1;
+  background: var(--bg-subtle);
+  color: var(--text);
 }
 
 .dashboard-content {
-  max-width: 560px;
+  max-width: 580px;
   margin: 0 auto;
   padding-top: 48px;
 }
@@ -41,10 +41,10 @@
 .profile-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 28px 32px;
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
   box-shadow: var(--shadow);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -52,8 +52,8 @@
 }
 
 .profile-info h2 {
-  font-size: 20px;
-  margin-bottom: 6px;
+  font-size: 18px;
+  margin-bottom: 4px;
 }
 
 .profile-meta {
@@ -70,80 +70,87 @@
 
 .skill-chip {
   display: inline-block;
-  background: rgba(30, 58, 95, 0.07);
-  color: var(--accent);
+  background: var(--bg-subtle);
+  color: var(--text);
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 20px;
   font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.01em;
+  border: 1px solid var(--border);
 }
 
 .update-resume-btn {
-  background: transparent;
-  color: var(--text-muted);
+  background: var(--surface);
+  color: var(--text);
   border: 1px solid var(--border);
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   cursor: pointer;
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .update-resume-btn:hover {
   background: var(--surface-hover);
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--border-hover);
 }
 
 /* ── Upload Section ── */
 .upload-section {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 40px 36px;
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
   box-shadow: var(--shadow);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .upload-section h1 {
-  font-size: 26px;
+  font-size: 20px;
   margin-bottom: 4px;
 }
 
 .upload-section .dropzone {
-  border: 1px dashed var(--border);
-  border-radius: 8px;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius);
   padding: 32px 20px;
   text-align: center;
   color: var(--text-muted);
   font-size: 14px;
   transition: border-color 0.15s, background 0.15s;
+  background: var(--bg);
+  margin-top: 16px;
 }
 
 .upload-section .dropzone--active {
   border-color: var(--accent);
-  background: rgba(30, 58, 95, 0.04);
+  background: var(--accent-light);
 }
 
 .upload-section .dropzone--filled {
-  border-color: var(--text-muted);
+  border-color: var(--border);
   border-style: solid;
+  background: var(--surface);
 }
 
 .upload-section .browse-label {
   color: var(--accent);
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  font-weight: 500;
+}
+
+.upload-section .browse-label:hover {
+  color: var(--accent-hover);
 }
 
 .upload-section .file-name {
   color: var(--text);
   font-size: 14px;
+  font-weight: 500;
   margin-bottom: 4px;
 }
 
@@ -156,15 +163,15 @@
 .search-section {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 40px 36px;
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
 }
 
 .search-section h2 {
-  font-size: 22px;
+  font-size: 20px;
   margin-bottom: 4px;
 }
 
@@ -173,11 +180,12 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 6px 0;
+  margin: 16px 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
 }
 
 .section-divider::before,
@@ -192,14 +200,14 @@
 .skeleton-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 32px;
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
   box-shadow: var(--shadow);
 }
 
 .skeleton-line {
   height: 14px;
-  background: linear-gradient(90deg, var(--surface-hover) 25%, var(--bg) 50%, var(--surface-hover) 75%);
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--border) 50%, var(--bg-subtle) 75%);
   background-size: 200% 100%;
   border-radius: 6px;
   animation: shimmer 1.5s infinite;
@@ -215,7 +223,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ── Form Fields (from SearchPage) ── */
+/* ── Form Fields ── */
 .field-group {
   display: flex;
   flex-direction: column;
@@ -229,15 +237,17 @@
 
 .field-group-heading {
   font-size: 12px;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 14px;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
 .field-label {
   font-size: 13px;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: var(--text);
   margin-top: 16px;
   margin-bottom: 6px;
 }
@@ -247,52 +257,64 @@
 }
 
 .text-input {
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: var(--radius);
+  padding: 10px 12px;
   color: var(--text);
   font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.15s;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.text-input::placeholder {
+  color: #9ca3af;
+}
+
+.text-input:hover {
+  border-color: var(--border-hover);
 }
 
 .text-input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .checkbox-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 12px;
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 .checkbox-row input {
   width: 16px;
   height: 16px;
   accent-color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
 .progress-indicator {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 18px;
-  padding: 10px 14px;
-  background: var(--surface-hover);
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text);
+  font-weight: 500;
 }
 
 .progress-pulse {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--accent);
   animation: pulse 1.2s ease-in-out infinite;

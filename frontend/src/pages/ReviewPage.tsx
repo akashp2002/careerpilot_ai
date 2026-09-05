@@ -44,7 +44,7 @@ export default function ReviewPage() {
   if (!result) {
     return (
       <div className="review-page">
-        <p>No active search. <a href="/">Start a new search</a>.</p>
+        <p>No active search. <a href="/dashboard">Start a new search</a>.</p>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export default function ReviewPage() {
   const handleApprove = () => {
     if (!sessionId) {
       alert("Your session expired or wasn't found. Please start a new search.");
-      navigate("/");
+      navigate("/dashboard");
       return;
     }
     mutation.mutate({ session_id: sessionId, approved: true });
@@ -63,7 +63,7 @@ export default function ReviewPage() {
   const handleRefine = () => {
     if (!sessionId) {
       alert("Your session expired or wasn't found. Please start a new search.");
-      navigate("/");
+      navigate("/dashboard");
       return;
     }
 
@@ -151,7 +151,7 @@ export default function ReviewPage() {
         ) : (
           <>
             <p className="subtitle">You approved these results. Good luck with your applications!</p>
-            <button className="submit-btn submit-btn--large" onClick={() => navigate("/")}>
+            <button className="submit-btn submit-btn--large" onClick={() => navigate("/dashboard")}>
               Start a new search
             </button>
           </>
