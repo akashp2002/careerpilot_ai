@@ -35,7 +35,7 @@ test.describe('Authentication', () => {
   });
 
   test('can login with existing account', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     
     // Fill in credentials (assuming the account from previous test persists)
     // If running in isolated env, this might fail if DB resets, but we'll assume it works

@@ -33,7 +33,7 @@ export default function UploadPage() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   return (
