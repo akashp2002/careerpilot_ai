@@ -7,16 +7,16 @@ test.describe('Authentication', () => {
 
   test('redirects unauthenticated users to login page', async ({ page }) => {
     // Attempt to access a protected route
-    await page.goto('/');
+    await page.goto('/dashboard');
     
-    // Should be redirected to /login
-    await expect(page).toHaveURL(/.*\/login/);
+    // Should be redirected to / (AuthPage)
+    await expect(page).toHaveURL(/.*\//);
     await expect(page.locator('h1')).toHaveText('CareerPilot AI');
     await expect(page.locator('.auth-subtitle')).toHaveText('Welcome back! Please sign in.');
   });
 
   test('can register a new account', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     
     // Switch to registration mode
     await page.click('button:has-text("Sign up")');
@@ -30,7 +30,7 @@ test.describe('Authentication', () => {
     await page.click('button[type="submit"]');
 
     // Should redirect to dashboard and show Upload Resume for a new user
-    await expect(page).toHaveURL('http://localhost:5173/');
+    await expect(page).toHaveURL(/.*\/dashboard/);
     await expect(page.locator('h1')).toContainText('Upload your resume');
   });
 
