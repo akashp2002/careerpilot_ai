@@ -1,7 +1,7 @@
 @import './shared.css';
 
 .review-page {
-  max-width: 720px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 48px 24px 64px;
 }
@@ -11,26 +11,27 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .review-topbar h1 {
-  font-size: 26px;
+  font-size: 24px;
   margin: 0;
 }
 
 .refine-toggle {
   width: auto;
   margin-top: 0;
-  padding: 10px 18px;
+  padding: 8px 14px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .refine-panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
+  border-radius: var(--radius-lg);
+  padding: 24px;
   margin-bottom: 24px;
   box-shadow: var(--shadow);
 }
@@ -38,42 +39,52 @@
 .refine-fields {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .text-input {
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: var(--radius);
+  padding: 10px 12px;
   color: var(--text);
   font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.15s;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.text-input::placeholder {
+  color: #9ca3af;
+}
+
+.text-input:hover {
+  border-color: var(--border-hover);
 }
 
 .text-input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .job-list {
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .review-footer {
-  margin-top: 24px;
+  margin-top: 32px;
   text-align: center;
 }
 
 .review-footer .subtitle {
   max-width: none;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .submit-btn--large {
-  max-width: 360px;
+  max-width: 320px;
   margin: 0 auto;
-  padding: 14px 20px;
+  padding: 12px 20px;
+  font-size: 15px;
 }

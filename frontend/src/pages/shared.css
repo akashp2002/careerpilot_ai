@@ -1,62 +1,65 @@
 .eyebrow {
-  color: var(--accent);
+  color: var(--text-muted);
   font-size: 12px;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .subtitle {
   color: var(--text-muted);
   font-size: 14px;
-  margin-bottom: 28px;
-  line-height: 1.7;
+  margin-bottom: 24px;
+  line-height: 1.6;
   max-width: 40rem;
 }
 
 .error-banner {
   margin-top: 16px;
-  padding: 14px 16px;
-  background: rgba(176, 57, 44, 0.08);
-  border: 1px solid rgba(176, 57, 44, 0.2);
-  border-radius: 8px;
-  color: var(--danger);
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  color: #b91c1c;
   font-size: 13px;
 }
 
 .submit-btn {
   width: 100%;
   margin-top: 24px;
-  padding: 13px 18px;
+  padding: 10px 16px;
   background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   font-weight: 500;
   font-size: 14px;
-  transition: background 0.15s ease;
-  box-shadow: var(--shadow);
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--accent-dim);
+  background: var(--accent-hover);
 }
 
 .submit-btn:disabled {
-  background: var(--border);
+  background: var(--bg-subtle);
+  border-color: var(--border);
   color: var(--text-muted);
   cursor: not-allowed;
   box-shadow: none;
 }
 
 .submit-btn--secondary {
-  background: transparent;
+  background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
 }
 
 .submit-btn--secondary:hover:not(:disabled) {
   background: var(--surface-hover);
-  border-color: var(--accent);
+  border-color: var(--border-hover);
 }

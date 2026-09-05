@@ -3,27 +3,31 @@
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  min-height: 44px;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  min-height: 42px;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .tag-input:focus-within {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .tag-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--surface-hover);
+  background: var(--bg-subtle);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 4px 8px;
+  border-radius: 4px;
+  padding: 3px 8px;
   font-size: 12px;
+  font-weight: 500;
 }
 
 .tag-remove {
@@ -33,10 +37,11 @@
   font-size: 14px;
   line-height: 1;
   padding: 0;
+  cursor: pointer;
 }
 
 .tag-remove:hover {
-  color: var(--text);
+  color: var(--danger);
 }
 
 .tag-input-field {
@@ -48,4 +53,8 @@
   font-size: 14px;
   font-family: inherit;
   outline: none;
+}
+
+.tag-input-field::placeholder {
+  color: #9ca3af;
 }
