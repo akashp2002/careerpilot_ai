@@ -1,6 +1,8 @@
 import { apiClient } from "./client";
 import type { JobSearchRequest, JobSearchResponse, JobResumeRequest } from "./types";
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? "" : "http://127.0.0.1:8000");
+
 export async function searchJobs(request: JobSearchRequest): Promise<JobSearchResponse> {
   const response = await apiClient.post<JobSearchResponse>("/api/jobs/search", request);
   return response.data;
@@ -34,7 +36,7 @@ export async function searchJobsStream(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch("http://127.0.0.1:8000/api/jobs/search/stream", {
+  const response = await fetch(`${apiBaseUrl}/api/jobs/search/stream`, {
     method: "POST",
     headers,
     body: JSON.stringify(request),
