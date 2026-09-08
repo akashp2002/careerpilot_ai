@@ -3,9 +3,9 @@ from app.agents.state import GraphState
 from app.core.job_analyzer import analyze_job_batch
 from app.core.job_cache import get_cached_analyses, save_to_cache
 
-MAX_LISTINGS_TO_ANALYZE = 15
+MAX_LISTINGS_TO_ANALYZE = 25
 BATCH_SIZE = 5
-MAX_CONCURRENT_BATCHES = 3
+MAX_CONCURRENT_BATCHES = 5
 
 
 async def jd_analysis_node(state: GraphState) -> GraphState:
