@@ -89,18 +89,33 @@ jobs:
             echo "✅ Waiting for backend health..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-            for i in {1..30}; do
-              if curl -sf http://localhost:8000/health > /dev/null; then
-                echo "✅ Backend is healthy!"
+            # Give systemd a moment to actually launch the process
+            sleep 3
+
+            HEALTHY=0
+            # Wait up to 3 minutes (60 × 3s) — LangGraph's PostgreSQL checkpointer
+            # setup can take 30-60s on a cold t3.micro
+            for i in {1..60}; do
+              STATUS=$(sudo systemctl is-active careerpilot-backend 2>/dev/null || echo "unknown")
+              if [ "$STATUS" = "failed" ]; then
+                echo "❌ Backend service crashed! Showing logs:"
+                sudo journalctl -u careerpilot-backend -n 50 --no-pager
+                exit 1
+              fi
+              if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+                echo "✅ Backend is healthy! (took ~$((i * 3))s)"
+                HEALTHY=1
                 break
               fi
-
-              echo "Waiting... ($i/30)"
-              sleep 2
+              echo "   Waiting... attempt $i/60 — service status: $STATUS"
+              sleep 3
             done
 
-            curl -sf http://localhost:8000/health > /dev/null || \
-              (echo "❌ Backend health check failed!" && exit 1)
+            if [ "$HEALTHY" -eq 0 ]; then
+              echo "❌ Backend did not become healthy within 3 minutes. Showing logs:"
+              sudo journalctl -u careerpilot-backend -n 50 --no-pager
+              exit 1
+            fi
 
             echo ""
             echo "🎉 Deploy complete!"
