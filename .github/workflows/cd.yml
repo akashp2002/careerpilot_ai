@@ -3,7 +3,6 @@ name: 🚀 CD — Deploy to AWS EC2
 on:
   push:
     branches: [ main ]
-  # Allow manual trigger from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -13,7 +12,6 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      # ── 1. SSH into EC2 and deploy ─────────────────────────────────────────
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -21,6 +19,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+
           script: |
             set -euo pipefail
 
@@ -29,57 +28,77 @@ jobs:
             FRONTEND_DIR="$APP_DIR/frontend"
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "📥  Pulling latest code from git..."
+            echo "📥 Pulling latest code..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
             cd "$APP_DIR"
             git fetch origin main
             git reset --hard origin/main
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🐍  Installing backend dependencies..."
+            echo "🛑 Stopping backend..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+            sudo systemctl stop careerpilot-backend
+
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🐍 Installing backend dependencies..."
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
             cd "$BACKEND_DIR"
             source venv/bin/activate
+
             pip install --upgrade pip --quiet
             pip install -r requirements.txt --quiet
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🗄️   Running database migrations..."
+            echo "🗄️ Running database migrations..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
             alembic upgrade head
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "⚛️   Building frontend..."
+            echo "⚛️ Building frontend..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
             cd "$FRONTEND_DIR"
+
             npm ci --silent
             npm run build
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "📂  Copying frontend to Nginx..."
+            echo "📂 Deploying frontend..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
             sudo rm -rf /var/www/careerpilot/*
             sudo cp -r dist/* /var/www/careerpilot/
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🔄  Restarting services..."
+            echo "🔄 Starting backend..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            sudo systemctl restart careerpilot-backend
-            sudo systemctl restart nginx
+
+            sudo systemctl start careerpilot-backend
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "✅  Waiting for backend health check..."
+            echo "🔄 Reloading Nginx..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+            sudo systemctl reload nginx
+
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "✅ Waiting for backend health..."
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
             for i in {1..30}; do
               if curl -sf http://localhost:8000/health > /dev/null; then
                 echo "✅ Backend is healthy!"
                 break
               fi
-              echo "   Waiting... ($i/30)"
+
+              echo "Waiting... ($i/30)"
               sleep 2
             done
 
-            # Final check — fail the deploy if backend never came up
             curl -sf http://localhost:8000/health > /dev/null || \
               (echo "❌ Backend health check failed!" && exit 1)
 
